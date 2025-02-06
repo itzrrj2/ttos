@@ -12,7 +12,7 @@ BOT_TOKEN = "7381647603:AAFaCw2tIA4-OJA5j1iEYSNJGBrAnP0lCSo"
 # Replace with your channel numeric ID & public username (if available)
 REQUIRED_CHANNELS = {
     "-1002294570357": "Xstream_links2",
-    "-1002337777714": "Sr_Robots"
+    "-1002337777714": "Sr_robots"
 }
 
 API_URL = "https://text-to-speech.manzoor76b.workers.dev/?text={}&lang=hi"
@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
+
 async def check_membership(user_id: int) -> bool:
     """Check if the user is a member of both required channels"""
     for channel_id, channel_username in REQUIRED_CHANNELS.items():
@@ -32,38 +33,43 @@ async def check_membership(user_id: int) -> bool:
             chat_member = await bot.get_chat_member(channel_id, user_id)
             logger.info(f"Checking {user_id} in {channel_id}: {chat_member.status}")
 
-            if chat_member.status not in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
-                logger.warning(f"User {user_id} is NOT a member of {channel_id}")
+            # Allow members, administrators, and owners
+            if chat_member.status in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
+                continue  # User is valid
+            else:
+                logger.warning(f"User {user_id} is NOT a member of {channel_id} (Status: {chat_member.status})")
                 return False
         except Exception as e:
             logger.error(f"Error checking membership for {user_id} in {channel_id}: {e}")
             return False
-    return True
+    return True  # User is a valid member of all required channels
+
 
 @dp.message(Command("start"))
 async def start(message: Message):
     """Send a welcome message and check subscription"""
     user_id = message.from_user.id
     if not await check_membership(user_id):
-        join_message = "🚀 To use this bot, please join both channels:\n"
+        join_message = "🚀 To use this bot, please join both channels:\n\n"
         for channel_id, channel_username in REQUIRED_CHANNELS.items():
             join_message += f"🔹 [{channel_username}](https://t.me/{channel_username})\n"
-        join_message += "After joining, send /start again!"
+        join_message += "\nAfter joining, send /start again! ✅"
         
         await message.answer(join_message, parse_mode="Markdown")
         return
 
     await message.answer("✅ Welcome! Send me a text, and I'll convert it to speech in Hindi.")
 
+
 @dp.message()
 async def text_to_speech(message: Message):
     """Convert user text to speech using API and send the audio file"""
     user_id = message.from_user.id
     if not await check_membership(user_id):
-        join_message = "🚀 To use this bot, please join both channels:\n"
+        join_message = "🚀 To use this bot, please join both channels:\n\n"
         for channel_id, channel_username in REQUIRED_CHANNELS.items():
             join_message += f"🔹 [{channel_username}](https://t.me/{channel_username})\n"
-        join_message += "After joining, send /start again!"
+        join_message += "\nAfter joining, send /start again! ✅"
 
         await message.answer(join_message, parse_mode="Markdown")
         return
@@ -90,9 +96,11 @@ async def text_to_speech(message: Message):
             else:
                 await message.answer("⚠️ Failed to generate speech. Please try again.")
 
+
 async def main():
     """Start the bot"""
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
