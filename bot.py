@@ -36,8 +36,8 @@ async def start(message: Message):
     if not await check_membership(user_id):
         join_message = (
             f"🚀 To use this bot, please join both channels:\n"
-            f"1️⃣ [YourChannel1](https://t.me/{REQUIRED_CHANNELS[0]})\n"
-            f"2️⃣ [YourChannel2](https://t.me/{REQUIRED_CHANNELS[1]})\n"
+            f"1️⃣ [CHANNEL 1](https://t.me/{REQUIRED_CHANNELS[0]})\n"
+            f"2️⃣ [CHANNEL 2](https://t.me/{REQUIRED_CHANNELS[1]})\n"
             f"After joining, send /start again!"
         )
         await message.answer(join_message, parse_mode="Markdown")
