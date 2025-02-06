@@ -33,8 +33,12 @@ async def check_membership(user_id: int) -> bool:
             chat_member = await bot.get_chat_member(channel_id, user_id)
             logger.info(f"Checking {user_id} in {channel_id}: {chat_member.status}")
 
-            # Allow members, administrators, and owners
-            if chat_member.status in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
+            # Allow members, administrators, and owners (creators)
+            if chat_member.status in [
+                ChatMemberStatus.MEMBER, 
+                ChatMemberStatus.ADMINISTRATOR, 
+                ChatMemberStatus.OWNER  # Fix: Allow owners (creators)
+            ]:
                 continue  # User is valid
             else:
                 logger.warning(f"User {user_id} is NOT a member of {channel_id} (Status: {chat_member.status})")
