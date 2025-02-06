@@ -9,8 +9,11 @@ from aiogram.enums import ChatMemberStatus
 # Replace with your Bot Token
 BOT_TOKEN = "7381647603:AAFaCw2tIA4-OJA5j1iEYSNJGBrAnP0lCSo"
 
-# Replace with your required channel numeric IDs (or usernames if public)
-REQUIRED_CHANNELS = ["Xstream_links2", "SR_robots"]
+# Replace with your channel numeric ID & public username (if available)
+REQUIRED_CHANNELS = {
+    "-1002294570357": "Xstream_links2",
+    "-1002337777714": "Sr_Robots"
+}
 
 API_URL = "https://text-to-speech.manzoor76b.workers.dev/?text={}&lang=hi"
 
@@ -24,15 +27,16 @@ dp = Dispatcher()
 
 async def check_membership(user_id: int) -> bool:
     """Check if the user is a member of both required channels"""
-    for channel in REQUIRED_CHANNELS:
+    for channel_id, channel_username in REQUIRED_CHANNELS.items():
         try:
-            chat_member = await bot.get_chat_member(channel, user_id)
-            logger.info(f"Checking {user_id} in {channel}: {chat_member.status}")
+            chat_member = await bot.get_chat_member(channel_id, user_id)
+            logger.info(f"Checking {user_id} in {channel_id}: {chat_member.status}")
 
             if chat_member.status not in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
+                logger.warning(f"User {user_id} is NOT a member of {channel_id}")
                 return False
         except Exception as e:
-            logger.error(f"Error checking membership for {user_id} in {channel}: {e}")
+            logger.error(f"Error checking membership for {user_id} in {channel_id}: {e}")
             return False
     return True
 
@@ -41,12 +45,11 @@ async def start(message: Message):
     """Send a welcome message and check subscription"""
     user_id = message.from_user.id
     if not await check_membership(user_id):
-        join_message = (
-            f"🚀 To use this bot, please join both channels:\n"
-            f"1️⃣ [@XSTREAM_LINKS2](https://t.me/{REQUIRED_CHANNELS[0]})\n"
-            f"2️⃣ [@SR_ROBOTS](https://t.me/{REQUIRED_CHANNELS[1]})\n"
-            f"After joining, send /start again!"
-        )
+        join_message = "🚀 To use this bot, please join both channels:\n"
+        for channel_id, channel_username in REQUIRED_CHANNELS.items():
+            join_message += f"🔹 [{channel_username}](https://t.me/{channel_username})\n"
+        join_message += "After joining, send /start again!"
+        
         await message.answer(join_message, parse_mode="Markdown")
         return
 
@@ -57,12 +60,11 @@ async def text_to_speech(message: Message):
     """Convert user text to speech using API and send the audio file"""
     user_id = message.from_user.id
     if not await check_membership(user_id):
-        join_message = (
-            f"🚀 To use this bot, please join both channels:\n"
-            f"1️⃣ [Channel 1](https://t.me/{REQUIRED_CHANNELS[0]})\n"
-            f"2️⃣ [Channel 2](https://t.me/{REQUIRED_CHANNELS[1]})\n"
-            f"After joining, send /start again!"
-        )
+        join_message = "🚀 To use this bot, please join both channels:\n"
+        for channel_id, channel_username in REQUIRED_CHANNELS.items():
+            join_message += f"🔹 [{channel_username}](https://t.me/{channel_username})\n"
+        join_message += "After joining, send /start again!"
+
         await message.answer(join_message, parse_mode="Markdown")
         return
 
